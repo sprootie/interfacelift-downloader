@@ -8,7 +8,7 @@ A Python script to download wallpapers from [interfacelift.com](https://interfac
 ## Usage
 
 ```
-$ python interfacelift-downloader.py [-d DEST] [-t THREADS] [resolution]
+$ python interfacelift-downloader.py [-d DEST] [-t THREADS] [-c MAXCOUNT] [resolution]
 ```
 
 If not specified, the default parameters used are:
