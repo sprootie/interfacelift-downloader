@@ -16,6 +16,7 @@ If not specified, the default parameters used are:
 - Resolution: `1920x1080`
 - Destination Directory: `./wallpapers`
 - Threads: `4`
+- Maximum files to download: '-1'
 
 To list available resolutions:
 
@@ -47,6 +48,12 @@ To download `1600x900` wallpapers to the `./wallpapers/1600x900` directory:
 
 ```
 $ python interfacelift-downloader.py -d "wallpapers/1600x900" 1600x900
+```
+
+To download the `10` most recent `1600x900` wallpapers:
+
+```
+$ python interfacelift-downloader.py -c 10 1600x900
 ```
 
 # License

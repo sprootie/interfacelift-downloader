@@ -10,14 +10,17 @@ import argparse
 
 HOST = 'http://interfacelift.com'
 RES_PATHS = {
+        '6400x4000': '/wallpaper/downloads/date/wide_16:10/6400x4000/',
+        '5120x3200': '/wallpaper/downloads/date/wide_16:10/5120x3200/',
         '3840x2400': '/wallpaper/downloads/date/wide_16:10/3840x2400/',
         '3360x2100': '/wallpaper/downloads/date/wide_16:10/3360x2100/',
         '2880x1800': '/wallpaper/downloads/date/wide_16:10/2880x1800/',
         '2560x1600': '/wallpaper/downloads/date/wide_16:10/2560x1600/',
-        '2560x1600': '/wallpaper/downloads/date/wide_16:10/1920x1200/',
+        '1920x1200': '/wallpaper/downloads/date/wide_16:10/1920x1200/',
         '1680x1050': '/wallpaper/downloads/date/wide_16:10/1680x1050/',
         '1440x900': '/wallpaper/downloads/date/wide_16:10/1440x900/',
         '1280x800': '/wallpaper/downloads/date/wide_16:10/1280x800/',
+
         '5120x2880': '/wallpaper/downloads/date/wide_16:9/5120x2880/',
         '3840x2160': '/wallpaper/downloads/date/wide_16:9/3840x2160/',
         '2880x1620': '/wallpaper/downloads/date/wide_16:9/2880x1620/',
@@ -62,6 +65,10 @@ def download_file(url, saveDir):
             print(e)
             try: os.remove(saveFile)
             except: pass
+    if b'<html ' in open(saveFile, 'rb', 0).read():
+        print('[-] Deleting %s as it appears to be an HTML page' % saveFile)
+        try: os.remove(saveFile)
+        except: pass
 
 # Thread worker. Constantly takes URLs from the queue
 def download_worker():
@@ -124,12 +131,14 @@ def print_starting_vars():
     print('Selected resolution: %s' % args.resolution)
     print('Destination directory: %s' % SAVE_DIR)
     print('Threads: %s' % THREADS)
+    print('Maximum files to download: %s' % MAXCOUNT)
     
 # Parse arguments
 parser = argparse.ArgumentParser(description='Download wallpapers from interfacelift.com')
 parser.add_argument('resolution', nargs='?', help='the resolution to download (default: 1920x1080)', default='1920x1080')
 parser.add_argument('-d', '--dest', help='the directory to download to (default: ./wallpapers)', default='wallpapers')
 parser.add_argument('-t', '--threads', help='the number of threads to use (default: 4)', default=4, type=int)
+parser.add_argument('-c', '--count', help='number of images to download, or -1 for all available (default: -1)', default=-1, type=int)
 parser.add_argument('--list', help='list available resolutions', action='store_true')
 args = parser.parse_args()
 validate_args(parser, args)
@@ -138,6 +147,7 @@ validate_args(parser, args)
 RES_PATH = RES_PATHS[args.resolution]
 SAVE_DIR = args.dest
 THREADS = args.threads
+MAXCOUNT = args.count
 print_starting_vars()
 
 # Create directory if not exist
@@ -160,8 +170,14 @@ while True:
     pageContent = open_page(page)
     links = IMG_PATH_PATTERN.finditer(pageContent)
     for link in links:
-        queue.put(get_url_from_path(link.group('path')))
-        count += 1
+        # only queue if maxcount is not reached
+        if count != MAXCOUNT:
+            queue.put(get_url_from_path(link.group('path')))
+            count += 1
+
+    # break if image count reached
+    if MAXCOUNT == count:
+        break
 
     # break if no next page
     if has_next_page(pageContent, page):
